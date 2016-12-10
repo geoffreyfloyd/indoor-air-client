@@ -7,15 +7,15 @@
 import React, { Component } from 'react';
 import {
    AppRegistry,
-   Dimensions,
-   ListView,
    ProgressBarAndroid,
    StyleSheet,
-   Text,
-   View
+   View,
+   ViewPagerAndroid,
 } from 'react-native';
+// import { Icon } from 'react-native-elements';
 import firebase from 'firebase';
-
+import Dash from './src/views/Dash';
+import History from './src/views/History';
 // Initialize Firebase
 const config = {
    apiKey: "AIzaSyDpARKylspEmH6yi8vJePuiwRVre0nKOb4",
@@ -26,19 +26,15 @@ const config = {
 };
 firebase.initializeApp(config);
 
-export default class IndoorAirClient extends Component {
+export default class Air extends Component {
    constructor (props) {
       super(props);
-      // Get initial device dimensions (orientation changes handled by View.onLayout)
-      var dimensions = Dimensions.get('window');
 
       // Get data
       this.dataRef = firebase.database().ref('data/users/geoffreyfloyd/logs/indoor-air');
 
       this.state = {
          data: [],
-         dimensions,
-         dataSource: this.getDataSource([])
       };
    }
 
@@ -47,7 +43,7 @@ export default class IndoorAirClient extends Component {
    }
 
    listenForObjectMapData (key, ref) {
-      ref.orderByKey().on('child_added', (snap) => {
+      ref.orderByKey().limitToLast(60).on('child_added', (snap) => {
          // Get value as an object
          var obj = snap.val();
 
@@ -57,92 +53,69 @@ export default class IndoorAirClient extends Component {
          var newState = {
             current: obj,
             data: newData,
-            dataSource: this.getDataSource(newData, this.state.dataSource)
          };
          this.setState(newState);
       });
    }
 
-   getDataSource (data, dataSource) {
-      var ds = dataSource || new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-      return ds.cloneWithRows(data);
-   }
-
    render () {
-      var { current, data, dataSource } = this.state;
-      if (!data.length) {
+      var { current, data } = this.state;
+
+      if (!current || data.length < 61) {
          return this.renderLoadingIndicator();
       }
-
+   
       return (
-         <View style={styles.container}>
-            <Text style={styles.text}>{'Currently'}</Text>
-            <Text style={styles.text}>{'Humidity ' + current.h}</Text>
-            <Text style={styles.text}>{'Temperature ' + current.t}</Text>
-            <ListView
-               style={styles.list}
-               dataSource={dataSource}
-               renderRow={(row) =>
-                  <View key={row.ts}>
-                     <Text style={styles.data}>{row.ts + ' H' + row.h + ' T:' + row.t}</Text>
-                  </View>
-               }
-               renderSeparator={this.renderSeparator.bind(this)}
-            />
-         </View>
+         <ViewPagerAndroid
+            style={styles.root}
+            initialPage={0}
+         >
+            <View style={styles.page}>
+               <Dash
+                  colors={colors}
+                  humidity={current.h}
+                  temperature={current.t}
+               />
+            </View>
+            {/* Not ready for prime time
+            <View style={styles.page}>
+               <History
+                  colors={colors}
+                  data={data}
+               />
+            </View>
+            */}
+         </ViewPagerAndroid>
       );
    }
-            // {data.map(key => {
-            //    var row = data[key];
-            //    return (
-            //       <View key={key}>
-            //          <Text style={styles.data}>{key + ' H' + row.h + ' T:' + row.t}</Text>
-            //       </View>
-            //    );
-            // })}
+
    renderLoadingIndicator () {
       return (
-         <View style={styles.loadingContainer}>
+         <View style={styles.root}>
             <ProgressBarAndroid styleAttr="Large" />
          </View>
       );
    }
-
-   renderSeparator (sectionId: number, rowId: number, adjacentRowHighlighted: bool) {
-      return (
-         <View
-               key={`${sectionId}-${rowId}`}
-               style={separatorStyle(adjacentRowHighlighted)}
-         />
-      );
-   }
 }
 
-function separatorStyle (adjacentRowHighlighted) {
-   return {
-      height: adjacentRowHighlighted ? 4 : 1,
-      backgroundColor: adjacentRowHighlighted ? '#3B5998' : '#111',
-   };
+const colors = {
+   bgColor: '#222222',
+   foreColor: '#F5FCFF',
+   lowContrastColor: '#CCCCCC',
+   humidityAccentColor: '#2cb7d4',
+   temperatureAccentColor: '#e43f48', 
 }
 
-const foreColor = '#F5FCFF';
-const backColor = '#444444';
 const styles = StyleSheet.create({
-   container: {
+   root: {
       flex: 1,
-      flexDirection: 'column',
-      backgroundColor: backColor,
+      justifyContent: 'center',
+      backgroundColor: colors.bgColor,
    },
-   text: {
-      fontSize: 20,
-      margin: 10,
-      textAlign: 'center',
-      color: foreColor
+   page: {
+      flex: 1,
+      justifyContent: 'center',
    },
-   data: {
-      fontSize: 16,
-      color: foreColor
-   },   
 });
 
-AppRegistry.registerComponent('IndoorAirClient', () => IndoorAirClient);
+AppRegistry.registerComponent('Air', () => Air);

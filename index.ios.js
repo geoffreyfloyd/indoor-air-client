@@ -12,7 +12,7 @@ import {
   View
 } from 'react-native';
 
-export default class IndoorAirClient extends Component {
+export default class Air extends Component {
   render() {
     return (
       <View style={styles.container}>
@@ -50,4 +50,4 @@ const styles = StyleSheet.create({
   },
 });
 
-AppRegistry.registerComponent('IndoorAirClient', () => IndoorAirClient);
+AppRegistry.registerComponent('Air', () => Air);
