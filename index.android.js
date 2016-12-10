@@ -61,7 +61,7 @@ export default class Air extends Component {
    render () {
       var { current, data } = this.state;
 
-      if (!current || data.length < 61) {
+      if (!current) {
          return this.renderLoadingIndicator();
       }
    
@@ -77,14 +77,12 @@ export default class Air extends Component {
                   temperature={current.t}
                />
             </View>
-            {/* Not ready for prime time
             <View style={styles.page}>
                <History
                   colors={colors}
                   data={data}
                />
             </View>
-            */}
          </ViewPagerAndroid>
       );
    }
