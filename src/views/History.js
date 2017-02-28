@@ -40,7 +40,7 @@ export default class History extends Component {
                <View key={row.ts} style={styles.listItem}>
                   <Text style={styles.humidity}>{zeroPad(row.h)}</Text>
                   <Text style={styles.temperature}>{zeroPad(row.t)}</Text>
-                  <Text style={styles.time}>{row.ts.replace('T', ' ').replace('Z', '')}</Text>
+                  <Text style={styles.time}>{new Date(Date.parse(row.ts)).toLocaleString()}</Text>
                </View>
             }
          />
@@ -72,7 +72,6 @@ function separatorStyle (adjacentRowHighlighted) {
    };
 }
 
-
 const generateStyles = function (colors) {
    return StyleSheet.create({
       _root: {
@@ -99,7 +98,7 @@ const generateStyles = function (colors) {
       },
       time: {
          textAlign: 'right',
-         flex: 2,
+         flex: 3,
          color: colors.lowContrastColor,
       }
    });
